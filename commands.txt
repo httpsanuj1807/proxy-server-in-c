@@ -1,0 +1,10 @@
+// command to run
+
+
+1. gcc -o test_executable test_lru.c map.c lru_cache.c
+
+// this will create a test_executable file
+
+2. ./test_executable
+
+this command will run the program
