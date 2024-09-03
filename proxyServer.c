@@ -27,6 +27,7 @@
 // };
 
 #define MAX_CLIENTS 10
+#define MAX_BYTES 4096 
 
 int port_number = 8080;
 int proxy_socketID; // my proxy web server socket
@@ -34,10 +35,130 @@ pthread_t tid[MAX_CLIENTS]; //  each element representing a unique thread in my 
 sem_t semaphore;  // basically a coun ter type of lock
 pthread_mutex_t lock; // mutex available value is only 0 or 1. It is a binary lock
 
+int handle_request(int clientSocketId, ParsedRequest *request, char* tempReq){
 
-void* thread_fn(void *socketNew){
 
+
+}
+
+
+void* thread_fn(void *newSocket){
+
+    sem_wait(&semaphore);
+    int currSemValue;
+    sem_getvalue(&semaphore, currSemValue);
+    printf("Current semaphore value is: %d\n", currSemValue);
+
+    int *temp = (int *) newSocket;
+    int clientSocketId = *temp;
+
+    int bytes_client_send, len;
+
+    char* buffer = (char*) calloc(MAX_BYTES, sizeof(char));
+
+    bytes_client_send = recv(clientSocketId, buffer, MAX_BYTES, 0);
+
+    while(bytes_client_send > 0){
+        
+        len = strlen(buffer);
+
+        if(strstr(buffer, "\r\n\r\n") == NULL){
+
+            bytes_client_send = recv(clientSocketId, buffer + len, MAX_BYTES - len, 0);
+            if(bytes_client_send < 0){
+                perror("Error receiving request from client\n");
+                free(buffer);
+                return;
+            }
+
+        }
+        else{
+
+            break;
+
+        }
+    }
+
+    // now we have our cliet request in our buffer, we have to search it in cache
+
+    char* tempReq = (char*) malloc((strlen(buffer)) * sizeof(char));
     
+    strcpy(tempReq, buffer);
+
+    printf("Client request is: %s\n", tempReq);
+
+    cache_element* temp = find_in_cache(tempReq);
+
+    if(temp != NULL){
+
+        int size = temp -> len;
+        int pos = 0;
+        char response[MAX_BYTES];
+
+        while(pos < size){
+
+            bzero(response, MAX_BYTES);
+            
+            int chunk_size = (size - pos < MAX_BYTES) ? (size - pos) : MAX_BYTES;
+
+            memcpy(response, temp -> data + pos, chunk_size);
+
+            if(send(clientSocketId, response, chunk_size, 0) < 0){
+                perror("Failed to send data\n");
+                break;
+            }
+
+            pos += chunk_size;
+
+
+        }
+        printf("Data retrieved from the cache\n");
+        printf("Response: %s\n", response);
+
+    }
+    else if(bytes_client_send > 0){
+
+        len = strlen(buffer);
+        ParsedRequest *request = ParsedRequest_create();
+
+        if(ParsedRequest_parse(request, buffer, len) < 0){
+            perror("Unable to parse the request\n");   
+        }
+        else{
+            bzero(buffer, MAX_BYTES);
+            if(!strcmp(request -> method, "GET")){
+
+                if(request -> host && request -> path && checkHTTPversion(request -> version) == 1){
+
+                    bytes_client_send = handle_request(clientSocketId, request, tempReq);
+
+                    if(bytes_client_send == -1){
+                        sendErrorCustom(clientSocketId, 500);
+                    }
+
+                }
+                else{
+                    sendErrorCustom(clientSocketId, 500);
+                }
+
+            }
+            else{
+                printf("We currently fullfill GET requests only\n ")
+            }
+        }
+        ParsedRequest_destroy(request);
+    }
+    else if(bytes_client_send == 0){
+        printf("Client is disconnected\n")
+    }
+
+    shutdown(clientSocketId, SHUT_RDWR);
+    close(clientSocketId);
+    free(buffer);
+    sem_post(&semaphore);
+    sem_getvalue(&semaphore, currSemValue);
+    printf("Current semphore value is %d\n", currSemValue);
+    free(tempReq);
 
 }
 
@@ -90,6 +211,7 @@ int main(int argc, char* argv){ // (type: int, argc is argument count that repre
 
     // setsockopt(int, int, int, const void*, socklen_t);
     // SOL_SOCKET specifies that the option is at the socket level.
+
     if(setsockopt(proxy_socketID, SOL_SOCKET, SO_REUSEADDR, (const char*) &reuse, sizeof(reuse)) < 0){
 
         perror("Set Socket Option Fail\n");
