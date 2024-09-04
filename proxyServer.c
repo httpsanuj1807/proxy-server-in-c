@@ -392,7 +392,7 @@ void* thread_fn(void *newSocket){
 
             }
             else{
-                printf("We currently fulfill GET requests only\n ")
+                printf("We currently fulfill GET requests only\n ");
             }
         }
         ParsedRequest_destroy(request);
@@ -400,7 +400,7 @@ void* thread_fn(void *newSocket){
     else if(bytes_client_send == 0){
         printf("Client is disconnected\n");
     }
-    else if(bytes_send_client < 0){
+    else if(bytes_client_send < 0){
 		printf("Error in receving request\n");
 	}
 
