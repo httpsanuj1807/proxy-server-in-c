@@ -105,6 +105,10 @@ int handle_request(int clientSocketId, ParsedRequest *request, char* tempReq){
 
 
     char *buffer = (char*) malloc(sizeof(char) * MAX_BYTES);
+    if (buffer == NULL) {
+        perror("Failed to allocate buffer");
+        return -1;
+    }
     strcpy(buffer, "GET ");
     strcat(buffer, request -> path);
     strcat(buffer, " ");
@@ -146,6 +150,81 @@ int handle_request(int clientSocketId, ParsedRequest *request, char* tempReq){
     }
 
     int remoteSocketId = connectRemoteServer(request -> host, server_port);
+
+    if(remoteSocketId < 0){
+        return -1;
+    }
+
+    int bytes_receive = 0;
+    bytes_receive = send(remoteSocketId, buffer, strlen(buffer), 0);
+
+    if(bytes_receive < 0){
+        perror("Failed to send request to remote server\n");
+        return -1;
+    }
+
+    bzero((char *) buffer, MAX_BYTES);
+
+    char* temp_buffer = (char *) malloc(sizeof(char) *  MAX_BYTES); // storing to save in cache
+    
+    if (temp_buffer == NULL) {
+        perror("Failed to allocate temp_buffer");
+        free(buffer);
+        return -1;
+    }
+
+    int temp_buffer_size = MAX_BYTES;
+    int temp_buffer_index = 0;
+
+    while((bytes_receive = recv(remoteSocketId, buffer, MAX_BYTES - 1, 0)) > 0){
+
+        // send data to client
+
+        int bytes_sent = send(clientSocketId, buffer, bytes_receive, 0);
+
+        if(bytes_sent < 0){
+            perror("Error in sending data to the client");
+            free(temp_buffer);
+            free(buffer);
+            return -1;
+        }
+
+        // check if  temp buffer needs to be resized
+
+        if(temp_buffer_index + bytes_receive > temp_buffer_size){
+
+            temp_buffer_size += MAX_BYTES;
+            char* new_temp_buffer = (char*) realloc(temp_buffer, temp_buffer_size);
+            if (new_temp_buffer == NULL) {
+                perror("Failed to reallocate temp_buffer");
+                free(temp_buffer);
+                free(buffer);
+                return -1;
+            }
+
+            temp_buffer = new_temp_buffer;
+        
+        }
+
+        memcpy(temp_buffer + temp_buffer_index, buffer, bytes_receive);
+        temp_buffer_index + = bytes_receive;
+        bzero(buffer, MAX_BYTES);
+
+    }
+
+    if(bytes_receive < 0){
+        perror("Error in receiving data from the server\n");
+    }
+
+    temp_buffer[temp_buffer_index] = '\0';
+    free(buffer);
+
+    // create cache element here
+
+    store_in_cache();
+    free(temp_buffer);
+    close(remoteSocketId);
+    return 0;
 
 }
 
