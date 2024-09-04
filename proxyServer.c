@@ -21,7 +21,7 @@
 // struct sockaddr {
 
 //     sa_len;  // total len
-//     sa_family_t sa_family; // address family, AF_INET for ipv4 and AF_INET6 for ipv6
+//     sa_family_t sa_family; // address family, AF_INET for ipv4 and  AF_INET6 for ipv6
 //     char sa_data[14]; // protocol specific data
 
 // };
@@ -36,15 +36,62 @@ sem_t semaphore;  // basically a coun ter type of lock
 pthread_mutex_t lock; // mutex available value is only 0 or 1. It is a binary lock
 
 
-int connectRemoteServer(){
+int connectRemoteServer(char* host_addr, int port_number){
 
+    int remoteSocket = socket(AF_INET, SOCK_STREAM, 0);
 
+    if(proxy_socketID < 0){
+        perror("Failed to remote server socket");
+        return -1;
+    }
 
+    // trying resolving host string into a IP address [netdb.h]
+    // struct hostent {
+    // char    *h_name;        // Official name of the host
+    // char    **h_aliases;    // Alias list
+    // int     h_addrtype;     // Address type (AF_INET for IPv4)
+    // int     h_length;       // Length of the address in bytes
+    // char    **h_addr_list;  // List of addresses (IPv4 addresses as binary) 
+    // };
+
+    // The first place gethostbyname might look is the local host file on your system, typically located at /etc/hosts. This file can contain mappings of IP addresses to hostnames for local or internal networks. Then go to DNS services
+
+    struct hostent *host = gethostbyname(host_addr);
+
+    if(host == NULL){
+
+        //stderr
+        // This line of code sends the string "No such host exists\n" to the standard error stream (stderr).
+        // stderr is typically used for error messages or diagnostics, and output directed here is usually displayed in the console or terminal, separate from standard output (stdout).
+        
+        // perror outputs the string you provide, followed by a colon, a space, and then the textual representation of the current error based on errno.
+        // It’s typically used after a system call or library function that fails to provide meaningful information about what went wrong.
+
+        fprintf(strder, "No such host exists\n");
+        return -1;
+
+    }
+
+    // establishing connection 
+
+    struct sockaddr_in server_addr;
+    bzero((char *) &server_addr, sizeof(server_addr));
+    server_addr -> sin_family = AF_INET;
+    server_addr -> sin_port = htons(port_number);
+
+    bcopy((char *) &host -> h_addr, (char *) &server_addr -> sin_addr.s_addr, host -> h_length);
+    if(connet(remoteSocket, (struct sockaddr *) &server_addr, (int) sizeof(server_addr)) < 0){
+        fprint(stderr, "Error in connecting remote server");
+        return -1;
+    }
+
+    printf("Connected to remote server at port %d\n", port_number);
+    return remoteSocket;
 
 }
 
 int handle_request(int clientSocketId, ParsedRequest *request, char* tempReq){
-
+>>> 
     // creating a http request
 
     // GET /index.html HTTP/1.1
