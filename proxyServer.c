@@ -426,7 +426,7 @@ int main(int argc, char* argv){ // (type: int, argc is argument count that repre
     // checking is user passed the port number or not
     if(argc == 2){
 
-        port_number = agrv[1];
+        port_number = argv[1];
 
     }
     else{
@@ -507,6 +507,7 @@ int main(int argc, char* argv){ // (type: int, argc is argument count that repre
 
         if(client_socketId < 0){
             perror("Not able to accept connection\n");
+            exit(1);
         }
         else{
 
@@ -516,10 +517,10 @@ int main(int argc, char* argv){ // (type: int, argc is argument count that repre
         }
 
         struct sockaddr_in* client_port = (struct sockaddr_in*) &client_addr;
-        struct in_addr ip_addr = client_port -> sin_addr;
+        struct in_addr ip_addr = client_port.sin_addr;
         char str[INET_ADDRSTRLEN];
         inet_ntop(AF_INET, &ip_addr, str, INET_ADDRSTRLEN);
-        printf("Client is connected with port number %d and client ip address is %s\n", ntohs(client_addr -> sin_port), str);
+        printf("Client is connected with port number %d and client ip address is %s\n", ntohs(client_addr.sin_port), str);
 
         pthread_create(&tid[connected_clients_count], NULL, thread_fn, (void *) &connected_sockets[connected_clients_count]);
         connected_clients_count++;
@@ -527,7 +528,5 @@ int main(int argc, char* argv){ // (type: int, argc is argument count that repre
     }
 
     close(proxy_socketID);
-    return 0;
-
     return 0;
 }
