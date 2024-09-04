@@ -426,7 +426,7 @@ int main(int argc, char* argv[]){ // (type: int, argc is argument count that rep
     // checking is user passed the port number or not
     if(argc == 2){
 
-        port_number = argv[1];
+        port_number = atoi(argv[1]);
 
     }
     else{
