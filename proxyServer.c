@@ -35,9 +35,70 @@ pthread_t tid[MAX_CLIENTS]; //  each element representing a unique thread in my 
 sem_t semaphore;  // basically a coun ter type of lock
 pthread_mutex_t lock; // mutex available value is only 0 or 1. It is a binary lock
 
+
+int connectRemoteServer(){
+
+
+
+
+}
+
 int handle_request(int clientSocketId, ParsedRequest *request, char* tempReq){
 
+    // creating a http request
 
+    // GET /index.html HTTP/1.1
+    // Host: example.com
+
+    // request -> path = "/index.html"
+    // request->version = "HTTP/1.1"
+    // request->host = "example.com"
+    // request->port = NULL indicating default port
+    // request->headers contains any additional headers sent by the client.
+
+
+    char *buffer = (char*) malloc(sizeof(char) * MAX_BYTES);
+    strcpy(buffer, "GET ");
+    strcat(buffer, request -> path);
+    strcat(buffer, " ");
+    strcat(buffer, request -> version);
+    strcat(buffer, "\r\n");
+
+    // buffer "GET /index.html HTTP/1.1\r\n"
+
+    int len = strlen(buffer);
+
+    // ParsedHeader: any header after the request line is a key-value pair with the
+    // format "key:value\r\n" and is maintained in the ParsedHeader linked list
+
+    // int ParsedHeader_set(struct ParsedRequest *pr, const char * key, const char * value);
+    if(ParsedHeader_set(request, "Connection", "close") < 0){ // so that it is used for only single use, and server closes connection after sending request
+        printf("Set header key is not working\n");
+    }
+
+    // struct ParsedHeader* ParsedHeader_get(struct ParsedRequest *pr, const char * key);
+    if(ParsedHeader_get(request, "Host") == NULL){
+
+        if(ParsedHeader_set(request, "HOST", request -> host) < 0){
+            printf("Set host header key is not working\n");
+        }
+    }
+
+    // The function un-parses (formats) the headers from request->headers and appends them to the buffer starting at the current length (len). This effectively constructs the complete HTTP request
+
+    if(ParsedRequest_unparse_headers(request, buffer + len, (int) MAX_BYTES - len) < 0){
+        printf("Unparse Failed\n");
+    }
+
+    // example request now "GET /index.html HTTP/1.1\r\nHost: example.com\r\nConnection: close\r\n\r\n"
+
+
+    int server_port = 80;
+    if(request -> port != NULL){ // if NULL means default 80
+        server_port = atoi(request -> port);
+    }
+
+    int remoteSocketId = connectRemoteServer(request -> host, server_port);
 
 }
 
@@ -119,12 +180,17 @@ void* thread_fn(void *newSocket){
     else if(bytes_client_send > 0){
 
         len = strlen(buffer);
+        //Create a ParsedRequest to use. This ParsedRequest
+        //is dynamically allocated.
         ParsedRequest *request = ParsedRequest_create();
 
         if(ParsedRequest_parse(request, buffer, len) < 0){
             perror("Unable to parse the request\n");   
+            return -1;
         }
         else{
+            printf("Method:%s\n", request -> method);
+            printf("Host:%s\n", request -> host);
             bzero(buffer, MAX_BYTES);
             if(!strcmp(request -> method, "GET")){
 
