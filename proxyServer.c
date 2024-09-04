@@ -415,7 +415,7 @@ void* thread_fn(void *newSocket){
 
 }
 
-int main(int argc, char* argv){ // (type: int, argc is argument count that represents the command line arguments including the program name, if argc is 1 means no additional just the program name, greater than 0 means additional, now argv stands for argument vector, we can access by argv[0]...)
+int main(int argc, char* argv[]){ // (type: int, argc is argument count that represents the command line arguments including the program name, if argc is 1 means no additional just the program name, greater than 0 means additional, now argv stands for argument vector, we can access by argv[0]...)
 
     int client_socketId, client_len;
     struct sockaddr_in server_addr, client_addr;
