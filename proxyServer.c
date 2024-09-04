@@ -4,7 +4,6 @@
 #include <string.h>
 #include <stdbool.h>
 #include "lru_cache.h"
-#include <pthread.h>
 #include <semaphore.h>
 #include <errno.h>
 #include <sys/socket.h> // contains socket related functions
@@ -33,7 +32,6 @@ int port_number = 8080;
 int proxy_socketID; // my proxy web server socket
 pthread_t tid[MAX_CLIENTS]; //  each element representing a unique thread in my program  
 sem_t semaphore;  // basically a coun ter type of lock
-pthread_mutex_t lock; // mutex available value is only 0 or 1. It is a binary lock
 
 
 int connectRemoteServer(char* host_addr, int port_number){
@@ -224,7 +222,7 @@ int handle_request(int clientSocketId, ParsedRequest *request, char* tempReq){
 
     // create cache element here
 
-    store_in_cache();
+    store_in_cache(temp_buffer, strlen(temp_buffer), tempReq);
     free(temp_buffer);
     close(remoteSocketId);
     return 0;
@@ -425,7 +423,7 @@ int main(int argc, char* argv){ // (type: int, argc is argument count that repre
     int client_socketId, client_len;
     struct sockaddr_in server_addr, client_addr;
     sem_init(&semaphore, 0, MAX_CLIENTS);  // initializing (var_addr, min value, max value)
-    pthread_mutex_init(&lock, NULL);
+    pthread_mutex_init(&cache_mutex, NULL);
 
 
     // checking is user passed the port number or not

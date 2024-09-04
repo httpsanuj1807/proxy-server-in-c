@@ -4,12 +4,14 @@
 #include <stdio.h>
 #include <string.h>
 #include <stdio.h>
+#include <pthread.h>
 
 
 cache_element* head = NULL;
 cache_element* tail = NULL;
 int ELEMENTS_IN_CACHE;
 int CACHE_CAPACITY;
+pthread_mutex_t cache_mutex = PTHREAD_MUTEX_INITIALIZER;
 
 void init_cache() {
 
@@ -118,16 +120,24 @@ bool relocate_cache(cache_element* obj){
 }
 
 
-bool store_in_cache(cache_element* obj){
+bool store_in_cache(char* data, int size, char* url){
 
-    
-
-    if(obj == NULL){
-
-        printf("\nCant insert NULL Obj\n");
-        return false;
-
+    pthread_mutex_lock(&cache_mutex);
+    printf("Cache Lock acquired\n");
+    cache_element* obj = (cache_element*) malloc(sizeof(cache_element));
+    if (obj == NULL) {
+        printf("Error allocating memory for cache element\n");
+        printf("Cache Lock released\n");
+        pthread_mutex_unlock(&cache_mutex);
+        return 0;
     }
+    obj -> data = (char*) malloc((size + 1) *  sizeof(char));
+    strcpy(obj -> data, data);
+    obj -> url = (char*) malloc((strlen(url) + 1) * sizeof(char));
+    strcpy(obj -> url, url);
+    obj -> len = size;
+    obj -> next = NULL;
+    obj -> prev = NULL;
 
     printf("\nStoring in cache, URL : %s\n", obj -> url);
     
@@ -135,15 +145,20 @@ bool store_in_cache(cache_element* obj){
     else ELEMENTS_IN_CACHE++;
 
     insert_at_head(obj);
-    return true;
+    pthread_mutex_unlock(&cache_mutex);
+    printf("Cache Lock released\n");
+    return 1;
 
 }
 
 cache_element* find_in_cache(char* url){
-
+    pthread_mutex_lock(&cache_mutex);
+    printf("Cache Lock acquired\n");
     if(strlen(url) == 0){
 
         printf("URL size not sufficient to find in cache");
+        pthread_mutex_unlock(&cache_mutex);
+        printf("Cache Lock released\n");
         return NULL;
 
     }
@@ -162,14 +177,16 @@ cache_element* find_in_cache(char* url){
         else{
             printf("STATUS :  (unable to relocate in cache)\n");
         }
-
+        pthread_mutex_unlock(&cache_mutex);
+        printf("Cache Lock released\n");
         return temp;
     }
     else{
         printf("\nCache MISS : %s\n", url);
     }
 
-
+    pthread_mutex_unlock(&cache_mutex);
+    printf("Cache Lock released\n");
     return NULL;
 
 }
