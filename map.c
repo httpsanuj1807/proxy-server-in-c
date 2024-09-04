@@ -73,7 +73,7 @@ bool insert(cache_element* head){
     
     int index = hash(head -> url);
 
-    cache_store* temp = malloc(sizeof(cache_store));
+    cache_store* temp = (cache_store*) malloc(sizeof(cache_store));
 
     if (!temp) {
         printf("Memory allocation failed for cache_store\n");
