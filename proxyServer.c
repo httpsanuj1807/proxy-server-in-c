@@ -65,7 +65,7 @@ int connectRemoteServer(char* host_addr, int port_number){
         // perror outputs the string you provide, followed by a colon, a space, and then the textual representation of the current error based on errno.
         // It’s typically used after a system call or library function that fails to provide meaningful information about what went wrong.
 
-        fprintf(strder, "No such host exists\n");
+        fprintf(stderr, "No such host exists\n");
         return -1;
 
     }
@@ -74,12 +74,12 @@ int connectRemoteServer(char* host_addr, int port_number){
 
     struct sockaddr_in server_addr;
     bzero((char *) &server_addr, sizeof(server_addr));
-    server_addr -> sin_family = AF_INET;
-    server_addr -> sin_port = htons(port_number);
+    server_addr.sin_family = AF_INET;
+    server_addr.sin_port = htons(port_number);
 
-    bcopy((char *) &host -> h_addr, (char *) &server_addr -> sin_addr.s_addr, host -> h_length);
-    if(connet(remoteSocket, (struct sockaddr *) &server_addr, (int) sizeof(server_addr)) < 0){
-        fprint(stderr, "Error in connecting remote server");
+    bcopy((char *) &host -> h_addr, (char *) &server_addr.sin_addr.s_addr, host -> h_length);
+    if(connect(remoteSocket, (struct sockaddr *) &server_addr, (int) sizeof(server_addr)) < 0){
+        fprintf(stderr, "Error in connecting remote server");
         return -1;
     }
 
@@ -89,7 +89,7 @@ int connectRemoteServer(char* host_addr, int port_number){
 }
 
 int handle_request(int clientSocketId, ParsedRequest *request, char* tempReq){
->>> 
+
     // creating a http request
 
     // GET /index.html HTTP/1.1
@@ -128,7 +128,7 @@ int handle_request(int clientSocketId, ParsedRequest *request, char* tempReq){
     // struct ParsedHeader* ParsedHeader_get(struct ParsedRequest *pr, const char * key);
     if(ParsedHeader_get(request, "Host") == NULL){
 
-        if(ParsedHeader_set(request, "HOST", request -> host) < 0){
+        if(ParsedHeader_set(request, "Host", request -> host) < 0){
             printf("Set host header key is not working\n");
         }
     }
@@ -137,8 +137,6 @@ int handle_request(int clientSocketId, ParsedRequest *request, char* tempReq){
 
     if(ParsedRequest_unparse_headers(request, buffer + len, (int) MAX_BYTES - len) < 0){
         printf("Unparse Failed\n");
-        free(buffer);
-        return -1;
     }
 
     // example request now "GET /index.html HTTP/1.1\r\nHost: example.com\r\nConnection: close\r\n\r\n"
@@ -207,7 +205,7 @@ int handle_request(int clientSocketId, ParsedRequest *request, char* tempReq){
         }
 
         memcpy(temp_buffer + temp_buffer_index, buffer, bytes_receive);
-        temp_buffer_index + = bytes_receive;
+        temp_buffer_index += bytes_receive;
         bzero(buffer, MAX_BYTES);
 
     }
@@ -219,9 +217,6 @@ int handle_request(int clientSocketId, ParsedRequest *request, char* tempReq){
 
     temp_buffer[temp_buffer_index] = '\0';
     free(buffer);
-
-    // create cache element here
-
     store_in_cache(temp_buffer, strlen(temp_buffer), tempReq);
     free(temp_buffer);
     close(remoteSocketId);
@@ -234,10 +229,10 @@ int checkHTTPversion(char* msg){
 
     int version = -1;
 
-    if(strncmp(msg, "HTTP/1.1", "8") == 0){
+    if(strncmp(msg, "HTTP/1.1", 8) == 0){
         version = 1;
     }
-    else if(strncmp(msg, "HTTP/1.0", "8") == 0){
+    else if(strncmp(msg, "HTTP/1.0", 8) == 0){
         version = 1;
     }
 
@@ -246,7 +241,7 @@ int checkHTTPversion(char* msg){
 }
 
 
-int sendErrorMessage(int socket, int status_code)
+int sendErrorCustom(int socket, int status_code)
 {
 	char str[1024];
 	char currentTime[50];
@@ -297,7 +292,7 @@ void* thread_fn(void *newSocket){
 
     sem_wait(&semaphore);
     int currSemValue;
-    sem_getvalue(&semaphore, currSemValue);
+    sem_getvalue(&semaphore, &currSemValue);
     printf("Current semaphore value is: %d\n", currSemValue);
 
     int *temp = (int *) newSocket;
@@ -317,9 +312,8 @@ void* thread_fn(void *newSocket){
 
             bytes_client_send = recv(clientSocketId, buffer + len, MAX_BYTES - len, 0);
             if(bytes_client_send < 0){
-                perror("Error receiving request from client\n");
+                perror("Error receiving request data from client\n");
                 free(buffer);
-                return;
             }
 
         }
@@ -338,11 +332,11 @@ void* thread_fn(void *newSocket){
 
     printf("Client request is: %s\n", tempReq);
 
-    cache_element* temp = find_in_cache(tempReq);
+    cache_element* inCacheAddr = find_in_cache(tempReq);
 
-    if(temp != NULL){
+    if(inCacheAddr != NULL){
 
-        int size = temp -> len;
+        int size = inCacheAddr -> len;
         int pos = 0;
         char response[MAX_BYTES];
 
@@ -352,7 +346,7 @@ void* thread_fn(void *newSocket){
             
             int chunk_size = (size - pos < MAX_BYTES) ? (size - pos) : MAX_BYTES;
 
-            memcpy(response, temp -> data + pos, chunk_size);
+            memcpy(response, inCacheAddr -> data + pos, chunk_size);
 
             if(send(clientSocketId, response, chunk_size, 0) < 0){
                 perror("Failed to send data\n");
@@ -376,7 +370,6 @@ void* thread_fn(void *newSocket){
 
         if(ParsedRequest_parse(request, buffer, len) < 0){
             perror("Unable to parse the request\n");   
-            return -1;
         }
         else{
             printf("Method:%s\n", request -> method);
@@ -405,16 +398,20 @@ void* thread_fn(void *newSocket){
         ParsedRequest_destroy(request);
     }
     else if(bytes_client_send == 0){
-        printf("Client is disconnected\n")
+        printf("Client is disconnected\n");
     }
+    else if(bytes_send_client < 0){
+		printf("Error in receving request\n");
+	}
 
     shutdown(clientSocketId, SHUT_RDWR);
     close(clientSocketId);
     free(buffer);
     sem_post(&semaphore);
-    sem_getvalue(&semaphore, currSemValue);
+    sem_getvalue(&semaphore, &currSemValue);
     printf("Current semphore value is %d\n", currSemValue);
     free(tempReq);
+    return NULL;
 
 }
 
