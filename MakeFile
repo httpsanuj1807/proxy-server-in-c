@@ -1,0 +1,22 @@
+CC=gcc
+CFLAGS=-g -Wall -pthread
+
+all: proxy
+
+proxy: proxyServer.o proxy_parse.o map.o lru_cache.o
+	$(CC) $(CFLAGS) -o proxy proxyServer.o proxy_parse.o map.o lru_cache.o
+
+proxyServer.o: proxyServer.c
+	$(CC) $(CFLAGS) -c proxyServer.c
+
+proxy_parse.o: proxy_parse.c
+	$(CC) $(CFLAGS) -c proxy_parse.c
+
+map.o: map.c map.h
+	$(CC) $(CFLAGS) -c map.c
+
+lru_cache.o: lru_cache.c lru_cache.h
+	$(CC) $(CFLAGS) -c lru_cache.c
+
+clean:
+	rm -f *.o proxy
