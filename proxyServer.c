@@ -267,7 +267,7 @@ int sendErrorCustom(int socket, int status_code)
 				  send(socket, str, strlen(str), 0);
 				  break;
 
-		case 500: snprintf(str, sizeof(str), "HTTP/1.1 500 Internal Server Error\r\nContent-Length: 115\r\nConnection: keep-alive\r\nContent-Type: text/html\r\nDate: %s\r\nServer: Anuj1807\r\n\r\n<HTML><HEAD><TITLE>500 Internal Server Error. This is all what we know.</TITLE></HEAD>\n<BODY><H1>500 Internal Server Error</H1>\n</BODY></HTML>", currentTime);
+		case 500: snprintf(str, sizeof(str), "HTTP/1.1 500 Internal Server Error\r\nContent-Length: 115\r\nConnection: keep-alive\r\nContent-Type: text/html\r\nDate: %s\r\nServer: Anuj1807\r\n\r\n<HTML><HEAD><TITLE>500 Internal Server Error.</TITLE></HEAD>\n<BODY><H1>500 Internal Server Error. This is all what we know</H1>\n</BODY></HTML>", currentTime);
 				  //printf("500 Internal Server Error\n");
 				  send(socket, str, strlen(str), 0);
 				  break;
