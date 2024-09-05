@@ -54,21 +54,21 @@ int connectRemoteServer(char* host_addr, int port_number){
 
     // The first place gethostbyname might look is the local host file on your system, typically located at /etc/hosts. This file can contain mappings of IP addresses to hostnames for local or internal networks. Then go to DNS services
 
-    struct hostent *host = gethostbyname(host_addr);
+    // struct hostent *host = gethostbyname(host_addr);
 
-    if(host == NULL){
+    // if(host == NULL){
 
-        //stderr
-        // This line of code sends the string "No such host exists\n" to the standard error stream (stderr).
-        // stderr is typically used for error messages or diagnostics, and output directed here is usually displayed in the console or terminal, separate from standard output (stdout).
+    //     //stderr
+    //     // This line of code sends the string "No such host exists\n" to the standard error stream (stderr).
+    //     // stderr is typically used for error messages or diagnostics, and output directed here is usually displayed in the console or terminal, separate from standard output (stdout).
         
-        // perror outputs the string you provide, followed by a colon, a space, and then the textual representation of the current error based on errno.
-        // It’s typically used after a system call or library function that fails to provide meaningful information about what went wrong.
+    //     // perror outputs the string you provide, followed by a colon, a space, and then the textual representation of the current error based on errno.
+    //     // It’s typically used after a system call or library function that fails to provide meaningful information about what went wrong.
 
-        fprintf(stderr, "No such host exists\n");
-        return -1;
+    //     fprintf(stderr, "No such host exists\n");
+    //     return -1;
 
-    }
+    // }
 
     // establishing connection 
 
@@ -76,6 +76,7 @@ int connectRemoteServer(char* host_addr, int port_number){
     bzero((char *) &server_addr, sizeof(server_addr));
     server_addr.sin_family = AF_INET;
     server_addr.sin_port = htons(port_number);
+    inet_aton("128.112.136.61", &server_addr.sin_addr);
 
     bcopy((char *) &host -> h_addr, (char *) &server_addr.sin_addr.s_addr, host -> h_length);
     printf("Trying connecting remote server at port number %d, IP address: %s and hostname %s\n", port_number, inet_ntoa(server_addr.sin_addr), host_addr);
