@@ -78,6 +78,7 @@ int connectRemoteServer(char* host_addr, int port_number){
     server_addr.sin_port = htons(port_number);
 
     bcopy((char *) &host -> h_addr, (char *) &server_addr.sin_addr.s_addr, host -> h_length);
+    printf("Trying connecting remote server at port number %d, IP address: %s and hostname %s\n", port_number, inet_ntoa(server_addr.sin_addr), host_addr);
     if(connect(remoteSocket, (struct sockaddr *) &server_addr, (int) sizeof(server_addr)) < 0){
         fprintf(stderr, "Error in connecting remote server\n");
         return -1;
