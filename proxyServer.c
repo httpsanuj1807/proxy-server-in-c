@@ -38,7 +38,7 @@ int connectRemoteServer(char* host_addr, int port_number){
 
     int remoteSocket = socket(AF_INET, SOCK_STREAM, 0);
 
-    if(proxy_socketID < 0){
+    if(remoteSocket < 0){
         perror("Failed to create remote server socket\n");
         return -1;
     }
@@ -143,6 +143,7 @@ int handle_request(int clientSocketId, ParsedRequest *request, char* tempReq){
 
     if(ParsedRequest_unparse_headers(request, buffer + len, (int) MAX_BYTES - len) < 0){
         printf("Unparse Failed\n");
+        return -1;
     }
 
     // example request now "GET /index.html HTTP/1.1\r\nHost: example.com\r\nConnection: close\r\n\r\n"
