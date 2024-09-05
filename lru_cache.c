@@ -139,14 +139,14 @@ bool store_in_cache(char* data, int size, char* url){
     obj -> next = NULL;
     obj -> prev = NULL;
 
-    printf("\nStoring in cache, URL : %s\n", obj -> url);
+    printf("\nStoring in cache, URL : %.100s\n", obj -> url);
     
     if(ELEMENTS_IN_CACHE >= CACHE_CAPACITY) delete_from_tail();
     else ELEMENTS_IN_CACHE++;
 
     insert_at_head(obj);
     pthread_mutex_unlock(&cache_mutex);
-    printf("Cache Lock released\n");
+    printf("Cache Lock released\n\n");
     return 1;
 
 }
@@ -168,7 +168,7 @@ cache_element* find_in_cache(char* url){
     
     if(temp){ // cache hit
 
-        printf("\nCache HIT : %s\n", temp -> url);
+        printf("\nCache HIT : %.100s\n", temp -> url);
         printf("Relocating to the most recent in cache\n");
 
         if(relocate_cache(temp)){ // relocate to head
@@ -182,7 +182,7 @@ cache_element* find_in_cache(char* url){
         return temp;
     }
     else{
-        printf("\nCache MISS : %s\n", url);
+        printf("\nCache MISS : %.100s\n", url);
     }
 
     pthread_mutex_unlock(&cache_mutex);

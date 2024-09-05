@@ -72,7 +72,7 @@ int connectRemoteServer(char* host_addr, int port_number){
 
     // establishing connection 
 
-    struct in_addr *ipaddr = (struct in_addr *) host->h_addr_list[0];
+    struct in_addr *ipaddr = (struct in_addr *) host -> h_addr_list[0];
     printf("Host address: %s\n", inet_ntoa(*ipaddr));
 
 
@@ -83,13 +83,12 @@ int connectRemoteServer(char* host_addr, int port_number){
     server_addr.sin_port = htons(port_number);
     memcpy(&server_addr.sin_addr.s_addr, ipaddr, sizeof(struct in_addr));
     
-    printf("Trying connecting remote server at port number %d, IP address: %s and hostname %s\n", port_number, inet_ntoa(server_addr.sin_addr), host_addr);
     if(connect(remoteSocket, (struct sockaddr *) &server_addr, (int) sizeof(server_addr)) < 0){
         fprintf(stderr, "Error in connecting remote server\n");
         return -1;
     }
 
-    printf("Connected to remote server at port %d\n", port_number);
+    printf("Connected to remote server at port %d\n\n", port_number);
     return remoteSocket;
 
 }
@@ -160,12 +159,16 @@ int handle_request(int clientSocketId, ParsedRequest *request, char* tempReq){
         return -1;
     }
 
-    int bytes_receive = 0;
-    bytes_receive = send(remoteSocketId, buffer, strlen(buffer), 0);
+    int bytes_send = 0;
+    printf("Sending request to remote server\n");
+    bytes_send = send(remoteSocketId, buffer, strlen(buffer), 0);
 
-    if(bytes_receive < 0){
+    if(bytes_send < 0){
         perror("Failed to send request to remote server\n");
         return -1;
+    }
+    else{
+        printf("Request sent to remote server\n\n");
     }
 
     bzero((char *) buffer, MAX_BYTES);
@@ -180,7 +183,8 @@ int handle_request(int clientSocketId, ParsedRequest *request, char* tempReq){
 
     int temp_buffer_size = MAX_BYTES;
     int temp_buffer_index = 0;
-
+    int bytes_receive = 0;
+    printf("Receiving data from remote server and sending to client\n");
     while((bytes_receive = recv(remoteSocketId, buffer, MAX_BYTES - 1, 0)) > 0){
 
         // send data to client
@@ -221,10 +225,14 @@ int handle_request(int clientSocketId, ParsedRequest *request, char* tempReq){
         perror("Error in receiving data from the server\n");
         return -1;
     }
+    else{
+        printf("Data received from remote server\n\n");
+    }
 
     temp_buffer[temp_buffer_index] = '\0';
     free(buffer);
     store_in_cache(temp_buffer, strlen(temp_buffer), tempReq);
+    print_cache();
     free(temp_buffer);
     close(remoteSocketId);
     return 0;
@@ -337,7 +345,7 @@ void* thread_fn(void *newSocket){
     
     strcpy(tempReq, buffer);
 
-    printf("Client request is: %s\n", tempReq);
+    printf("Client request is: %.100s\n", tempReq);
 
     cache_element* inCacheAddr = find_in_cache(tempReq);
 
@@ -370,17 +378,19 @@ void* thread_fn(void *newSocket){
     }
     else if(bytes_client_send > 0){
 
+        printf("Request not found in cache, trying to connect to server\n");
         len = strlen(buffer);
         //Create a ParsedRequest to use. This ParsedRequest
         //is dynamically allocated.
         ParsedRequest *request = ParsedRequest_create();
 
         if(ParsedRequest_parse(request, buffer, len) < 0){
-            perror("Unable to parse the request\n");   
+            perror("Unable to parse the request\n");  
+            return NULL; 
         }
         else{
-            printf("Method:%s\n", request -> method);
-            printf("Host:%s\n", request -> host);
+            printf("Method: %s\n", request -> method);
+            printf("Host: %s\n", request -> host);
             bzero(buffer, MAX_BYTES);
             if(!strcmp(request -> method, "GET")){
 
@@ -502,7 +512,7 @@ int main(int argc, char* argv[]){ // (type: int, argc is argument count that rep
         exit(1);
     }
 
-    printf("Server listening on port %d\n", port_number);
+    printf("Server listening on port %d\n\n", port_number);
     
     int connected_clients_count = 0;
     int connected_sockets[MAX_CLIENTS];
@@ -519,7 +529,7 @@ int main(int argc, char* argv[]){ // (type: int, argc is argument count that rep
         }
         else{
 
-            printf("Connection Established\n\n");
+            printf("Connection Established\n");
             connected_sockets[connected_clients_count] = client_socketId;
 
         }
