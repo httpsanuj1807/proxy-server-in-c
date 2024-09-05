@@ -68,7 +68,7 @@ int connectRemoteServer(char* host_addr, int port_number){
         fprintf(stderr, "No such host exists\n");
         return -1;
 
-    // }
+    }
 
     // establishing connection 
 
