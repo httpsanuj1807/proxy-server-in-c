@@ -53,12 +53,12 @@ void print_map(){
 
             while(temp){
 
-                printf("%s ", temp -> url);
+                printf("%.35s ", temp -> url);
                 temp = temp -> next;
 
             }
 
-            printf("\n");
+            printf("\n\n");
 
         }
 

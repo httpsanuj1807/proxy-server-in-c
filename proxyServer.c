@@ -345,7 +345,7 @@ void* thread_fn(void *newSocket){
     
     strcpy(tempReq, buffer);
 
-    printf("Client request is: %.100s\n", tempReq);
+    printf("Client request is: %.35s\n", tempReq);
 
     cache_element* inCacheAddr = find_in_cache(tempReq);
 
@@ -373,7 +373,7 @@ void* thread_fn(void *newSocket){
 
         }
         printf("Data retrieved from the cache\n");
-        printf("Response: %s\n", response);
+        printf("Response: %.35s\n", response);
 
     }
     else if(bytes_client_send > 0){

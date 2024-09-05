@@ -68,7 +68,7 @@ void delete_from_tail(){
     }
 
     printf("\nCache full %d/%d. Evicting....\n", ELEMENTS_IN_CACHE, CACHE_CAPACITY);
-    printf("\nRemoving Least Recently used in cache, URL : %s\n", tail -> url); 
+    printf("\nRemoving Least Recently used in cache, URL : %.35s\n", tail -> url); 
 
     cache_element* temp = tail;
     tail = tail -> prev;
@@ -139,7 +139,7 @@ bool store_in_cache(char* data, int size, char* url){
     obj -> next = NULL;
     obj -> prev = NULL;
 
-    printf("\nStoring in cache, URL : %.100s\n", obj -> url);
+    printf("\nStoring in cache, URL : %.35s\n", obj -> url);
     
     if(ELEMENTS_IN_CACHE >= CACHE_CAPACITY) delete_from_tail();
     else ELEMENTS_IN_CACHE++;
@@ -168,7 +168,7 @@ cache_element* find_in_cache(char* url){
     
     if(temp){ // cache hit
 
-        printf("\nCache HIT : %.100s\n", temp -> url);
+        printf("\nCache HIT : %.35s\n", temp -> url);
         printf("Relocating to the most recent in cache\n");
 
         if(relocate_cache(temp)){ // relocate to head
@@ -182,7 +182,7 @@ cache_element* find_in_cache(char* url){
         return temp;
     }
     else{
-        printf("\nCache MISS : %.100s\n", url);
+        printf("\nCache MISS : %.35s\n", url);
     }
 
     pthread_mutex_unlock(&cache_mutex);
@@ -208,7 +208,7 @@ void print_cache(){
     while(temp){
 
         if(temp != head) printf("  --->  ");;
-        printf("%s", temp -> url);
+        printf("%.35s", temp -> url);
         temp = temp -> next;
 
     }
