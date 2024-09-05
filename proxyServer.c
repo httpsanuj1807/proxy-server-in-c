@@ -76,7 +76,7 @@ int connectRemoteServer(char* host_addr, int port_number){
     bzero((char *) &server_addr, sizeof(server_addr));
     server_addr.sin_family = AF_INET;
     server_addr.sin_port = htons(port_number);
-    printf("Host address: %s\n", host -> h_addr_list[0]);
+    printf("Host address: %s\n", inet_ntoa(host -> h_addr_list[0]));
 
 
     bcopy((char *) &host -> h_addr, (char *) &server_addr.sin_addr.s_addr, host -> h_length);
