@@ -58,7 +58,7 @@ void print_map(){
 
             }
 
-            printf("\n\n");
+            printf("\n");
 
         }
 

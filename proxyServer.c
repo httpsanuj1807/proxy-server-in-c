@@ -345,8 +345,9 @@ void* thread_fn(void *newSocket){
     
     strcpy(tempReq, buffer);
 
-    printf("Client request is: %.35s\n", tempReq);
+    printf("Client request is: %.35s\n\n", tempReq);
 
+    printf("Searching in cache...\n");
     cache_element* inCacheAddr = find_in_cache(tempReq);
 
     if(inCacheAddr != NULL){
@@ -426,7 +427,7 @@ void* thread_fn(void *newSocket){
     free(buffer);
     sem_post(&semaphore);
     sem_getvalue(&semaphore, &currSemValue);
-    printf("Current semphore value is %d\n", currSemValue);
+    printf("\nCurrent semphore value is %d\n", currSemValue);
     free(tempReq);
     return NULL;
 

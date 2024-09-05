@@ -127,7 +127,7 @@ bool store_in_cache(char* data, int size, char* url){
     cache_element* obj = (cache_element*) malloc(sizeof(cache_element));
     if (obj == NULL) {
         printf("Error allocating memory for cache element\n");
-        printf("Cache Lock released\n");
+        printf("\nCache Lock released\n");
         pthread_mutex_unlock(&cache_mutex);
         return 0;
     }
@@ -146,17 +146,17 @@ bool store_in_cache(char* data, int size, char* url){
 
     insert_at_head(obj);
     pthread_mutex_unlock(&cache_mutex);
-    printf("Cache Lock released\n\n");
+    printf("\nCache Lock released\n\n");
     return 1;
 
 }
 
 cache_element* find_in_cache(char* url){
     pthread_mutex_lock(&cache_mutex);
-    printf("Cache Lock acquired\n");
+    printf("Cache Lock acquired\n\n");
     if(strlen(url) == 0){
 
-        printf("URL size not sufficient to find in cache");
+        printf("URL size not sufficient to find in cache\n\n");
         pthread_mutex_unlock(&cache_mutex);
         printf("Cache Lock released\n");
         return NULL;
@@ -168,7 +168,7 @@ cache_element* find_in_cache(char* url){
     
     if(temp){ // cache hit
 
-        printf("\nCache HIT : %.35s\n", temp -> url);
+        printf("Cache HIT : %.35s\n", temp -> url);
         printf("Relocating to the most recent in cache\n");
 
         if(relocate_cache(temp)){ // relocate to head
@@ -182,11 +182,11 @@ cache_element* find_in_cache(char* url){
         return temp;
     }
     else{
-        printf("\nCache MISS : %.35s\n", url);
+        printf("Cache MISS : %.35s\n", url);
     }
 
     pthread_mutex_unlock(&cache_mutex);
-    printf("Cache Lock released\n\n");
+    printf("\nCache Lock released\n\n");
     return NULL;
 
 }
