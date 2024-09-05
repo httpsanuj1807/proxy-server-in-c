@@ -72,14 +72,17 @@ int connectRemoteServer(char* host_addr, int port_number){
 
     // establishing connection 
 
+    struct in_addr *ipaddr = (struct in_addr *) host->h_addr_list[0];
+    printf("Host address: %s\n", inet_ntoa(*ipaddr));
+
+
+
     struct sockaddr_in server_addr;
     bzero((char *) &server_addr, sizeof(server_addr));
     server_addr.sin_family = AF_INET;
     server_addr.sin_port = htons(port_number);
-    printf("Host address: %s\n", inet_ntoa(host -> h_addr_list[0]));
-
-
-    bcopy((char *) &host -> h_addr, (char *) &server_addr.sin_addr.s_addr, host -> h_length);
+    memcpy(&server_addr.sin_addr.s_addr, ipaddr, sizeof(struct in_addr));
+    
     printf("Trying connecting remote server at port number %d, IP address: %s and hostname %s\n", port_number, inet_ntoa(server_addr.sin_addr), host_addr);
     if(connect(remoteSocket, (struct sockaddr *) &server_addr, (int) sizeof(server_addr)) < 0){
         fprintf(stderr, "Error in connecting remote server\n");
