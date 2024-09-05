@@ -178,7 +178,7 @@ cache_element* find_in_cache(char* url){
             printf("STATUS :  (unable to relocate in cache)\n");
         }
         pthread_mutex_unlock(&cache_mutex);
-        printf("Cache Lock released\n");
+        printf("Cache Lock released\n\n");
         return temp;
     }
     else{
@@ -186,7 +186,7 @@ cache_element* find_in_cache(char* url){
     }
 
     pthread_mutex_unlock(&cache_mutex);
-    printf("Cache Lock released\n");
+    printf("Cache Lock released\n\n");
     return NULL;
 
 }

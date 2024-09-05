@@ -39,7 +39,7 @@ int connectRemoteServer(char* host_addr, int port_number){
     int remoteSocket = socket(AF_INET, SOCK_STREAM, 0);
 
     if(proxy_socketID < 0){
-        perror("Failed to remote server socket");
+        perror("Failed to create remote server socket\n");
         return -1;
     }
 
@@ -79,7 +79,7 @@ int connectRemoteServer(char* host_addr, int port_number){
 
     bcopy((char *) &host -> h_addr, (char *) &server_addr.sin_addr.s_addr, host -> h_length);
     if(connect(remoteSocket, (struct sockaddr *) &server_addr, (int) sizeof(server_addr)) < 0){
-        fprintf(stderr, "Error in connecting remote server");
+        fprintf(stderr, "Error in connecting remote server\n");
         return -1;
     }
 
@@ -293,7 +293,7 @@ void* thread_fn(void *newSocket){
     sem_wait(&semaphore);
     int currSemValue;
     sem_getvalue(&semaphore, &currSemValue);
-    printf("Current semaphore value is: %d\n", currSemValue);
+    printf("\nCurrent semaphore value is: %d\n\n", currSemValue);
 
     int *temp = (int *) newSocket;
     int clientSocketId = *temp;
@@ -511,7 +511,7 @@ int main(int argc, char* argv[]){ // (type: int, argc is argument count that rep
         }
         else{
 
-            printf("Connection Established\n");
+            printf("Connection Established\n\n");
             connected_sockets[connected_clients_count] = client_socketId;
 
         }
